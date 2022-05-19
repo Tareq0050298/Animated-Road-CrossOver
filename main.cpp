@@ -1,123 +1,96 @@
+ #define GL_SILENCE_DEPRECATION
+ #include <math.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <time.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <sstream>
+ #include <iostream>
+#include<bits/stdc++.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#include<windows.h>
 
-#include<GL/glut.h>
-#include<stdio.h>
-#include<iostream>
 using namespace std;
 
-int xc, yc, r;
-float borderColor[3] = {1.0, 0.0, 0.0};
-float fillColor[3] = {0.0, 1.0, 0.0};
+double r,centerX,centerY,x=0,y,p;
 
-void setPixel(int x, int y, float color[3])
-{
-    glBegin(GL_POINTS);
-    glColor3fv(color);
-    glVertex2i(x,y);
-    glEnd();
-    glFlush();
-}
-
-void getPixel(int x, int y, float pixels[3])
-{
-    glReadPixels(x,y,1.0,1.0,GL_RGB,GL_FLOAT,pixels);
-}
-
-Tareq Rahman Khukon
-void plotPoint(int x, int y)
-{
-    glBegin(GL_POINTS);
-
-    glVertex2i(xc+x, yc+y);
-    glVertex2i(xc-x, yc+y);
-    glVertex2i(xc+x, yc-y);
-    glVertex2i(xc-x, yc-y);
-    glVertex2i(xc+y, yc+x);
-    glVertex2i(xc-y, yc+x);
-    glVertex2i(xc+y, yc-x);
-    glVertex2i(xc-y, yc-x);
-
-    glEnd();
-}
-
-void init(void)
-{
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, 500, 0, 500);
-}
-
-bool colorMatch(float firstColor[3], float secondColor[3]){
-    if(firstColor[0]==secondColor[0] && firstColor[1]==secondColor[1] && firstColor[2]==secondColor[2])
-        return true;
-    else
-        return false;
-}
-
-void boundaryFill4(int x, int y, float fColor[3], float border[3])
-{
-    float currentPixelColor[3];
-    getPixel(x, y, currentPixelColor);
-//    if(currentPixelColor[0]!=fColor[0] && currentPixelColor[1]!=fColor[1] && currentPixelColor[2]!=fColor[2] &&
-//       currentPixelColor[0]!=border[0] && currentPixelColor[1]!=border[1] && currentPixelColor[2]!=border[2])
-    if (!colorMatch(currentPixelColor, fColor) && !colorMatch(currentPixelColor, border))
-    {
-        setPixel(x, y, fColor);
-        boundaryFill4(x, y-1, fColor, border);
-        boundaryFill4(x, y+1, fColor, border);
-        boundaryFill4(x-1, y, fColor, border);
-        boundaryFill4(x+1, y, fColor, border);
+void draw_axis(){
+    for (int i=-500;i<=500;i++){
+        glVertex2d(0,i);
+    }
+    for (int i=-520;i<=750;i++){
+        glVertex2d(i, 0);
     }
 }
 
-void draw_circle()
-{
-    int x = 0;
-    int y = r;
-    int d = 3 - 2*r;
-    plotPoint(x, y);
-    while(y>x)
-    {
-        if(d<0)
-        {
-            x++;
-            d = d + 4*x + 6;
-        }
-        else
-        {
-            x++;
+
+void init(){
+    glClearColor(1.0, 1.0, 1.0, 0);
+    glColor3f(0.0f, 1.0f, 0.0f);
+    gluOrtho2D(-520, 640, -440, 480);
+}
+
+
+void bresenham_circle_drawing(){
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glBegin(GL_POINTS);
+    draw_axis();
+    glEnd();
+    glFlush();
+    glColor3f(0.0,0.0,1.0);
+
+    x=0;
+    y=r;
+    p=3-2*r;
+    while(x<=y){
+
+        glBegin(GL_POINTS);
+        glVertex2d(centerX+x, centerY+y);
+        glVertex2d(centerX+y, centerY+x);
+
+        glVertex2d(centerX-y, centerY+x);
+        glVertex2d(centerX-x, centerY+y);
+
+        glVertex2d(centerX-x, centerY-y);
+        glVertex2d(centerX-y, centerY-x);
+
+        glVertex2d(centerX+y, centerY-x);
+        glVertex2d(centerX+x, centerY-y);
+        glEnd();
+        glFlush();
+        if (p<0){
+            p = p + 4*x + 6;
+        }else{
+            p = p + 4*(x-y) + 10;
             y--;
-            d = d + 4*(x-y)+10;
         }
-        plotPoint(x, y);
+        x++;
     }
 }
 
-void display()
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-    glColor3fv(borderColor);
-    draw_circle();
-    boundaryFill4(xc, yc, fillColor, borderColor);
-    glFlush();
+void input(){
+    cout<<"Enter the Radius"<<endl;
+    cin>>r;
+    cout<<"Co-ordinate of Center: "<<endl;
+    cin>>centerX>>centerY;
 }
 
 
-int main(int argc, char **argv)
-{
-    cout << "Enter the coordinate of the circle [x, y]: ";
-    cin >> xc;
-    cin >> yc;
-    cout << "Enter your radious: "; cin >> r;
-
-    glutInit(&argc,argv);
-    glutInitDisplayMode(GLUT_RGB);
-    glutInitWindowPosition(200, 200);
-    glutInitWindowSize(500, 500);
-    glutCreateWindow("Boundary Fill");
+int main(int argc,char ** argv){
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB|GLUT_SINGLE);
+    glutInitWindowPosition(0, 0);
+    glutInitWindowSize(640, 480);
+    input();
+    glutCreateWindow("Bresenham Circle Drawing Algorithm");
     init();
-    glutDisplayFunc(display);
-//    glutMouseFunc(mouseEvent);
+    glutDisplayFunc(bresenham_circle_drawing);
+    //glutMouseFunc(onMouseClick);
     glutMainLoop();
+
+
 }
+
+
